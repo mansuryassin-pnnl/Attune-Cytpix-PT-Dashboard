@@ -263,6 +263,60 @@ c4.metric("Bead Lots",     df["BeadlotId"].nunique())
 
 st.divider()
 
+st.subheader("Pass / Fail Overview — All Channels")
+st.caption("Green = passed | Red = failed — select a channel above to investigate")
+df_heatmap = df_all[
+    df_all["BaselineTestId"] == selected_baseline
+].copy()
+# One row per test date + channel (TestResultPassed is test-level, same across flow rates)
+df_heatmap = (
+    df_heatmap
+    .groupby(["DateRun", "Channel"])["TestResultPassed"]
+    .first()
+    .reset_index()
+)
+pivot = df_heatmap.pivot(
+    index   = "Channel",
+    columns = "DateRun",
+    values  = "TestResultPassed"
+)
+pivot.columns = [
+    pd.Timestamp(c).strftime("%b %Y") for c in pivot.columns
+]
+
+# Pivot so rows = channels, columns = dates
+pivot = df_heatmap.pivot(
+    index   = "Channel",
+    columns = "DateRun",
+    values  = "TestResultPassed"
+)
+fig_heatmap = px.imshow(
+    pivot,
+    color_continuous_scale = [[0, "#d62728"], [1, "#2ca02c"]],   # red=fail green=pass
+    zmin        = 0,
+    zmax        = 1,
+    aspect      = "auto",
+    labels      = dict(color="Result"),
+    title       = "Instrument Pass/Fail by Channel and Test Date"
+)
+fig_heatmap.update_coloraxes(
+    colorbar = dict(
+        tickvals  = [0, 1],
+        ticktext  = ["Fail", "Pass"],
+        thickness = 15
+    )
+)
+
+fig_heatmap.update_layout(
+    height = 400,
+    margin = dict(l=60, r=40, t=60, b=80),
+    xaxis  = dict(tickangle=45)
+)
+
+st.plotly_chart(fig_heatmap, use_container_width=True)
+
+
+
 col_left, col_right = st.columns(2)
 
 with col_left:
