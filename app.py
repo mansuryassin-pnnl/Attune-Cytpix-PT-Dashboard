@@ -259,7 +259,6 @@ c1, c2, c3, c4 = st.columns(4)
 c1.metric("Tests in View", df["DateRun"].nunique())
 c2.metric("Channel",       selected_channel)
 c3.metric("Flow Rates",    df["FlowRate"].nunique())
-c4.metric("Bead Lots",     df["BeadlotId"].nunique())
 
 st.divider()
 
